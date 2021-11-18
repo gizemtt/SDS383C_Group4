@@ -60,7 +60,7 @@ spca_kern=function(x,cntr,rd,sigma.sq,mu,tau)
 }
 
 # Main function to calculate FG mixture results 
-FG_mixture=function(x,K,M,sigma_hat,Iter,tau_def,alpha,mm)
+FG_mixture <- function(x,K,M,sigma_hat,Iter,tau_def,alpha,mm)
 {
   #@param: mm: Additional parameters indicating the number of extra labels assigned (m in Neal Alg 8)
   #@param: x:data; K:#spheres; M:#vMF karnels; Iter:#iterations; tau_def:initial value of tau;
@@ -673,3 +673,42 @@ plot_density_FGM=function(N,Res1)
   }
   return(list(z,w))
 }
+
+library(ider)
+x_train=gendata(DataName = "SShape", n = 750, noise =0.01, seed=1)
+x_test=gendata(DataName = "SShape", n = 300, noise =0.01, seed=100)
+library(plot3D)
+scatter3D(x_train[,1],x_train[,2],x_train[,3])
+
+#source('/Users/rahmatashari/Desktop/SDS383C_Group4/CODE_original.R.R')
+FGM = FG_mixture(x_train,M=3,Iter=1000,alpha=1,mm=10) # this takes a while
+
+FGM$Sp_wgts
+FGM$Kern_wgts
+plot(FGM$trace_sigma)
+plot(FGM$likelihood_chain)
+FGM$Centers
+FGM$Radius
+
+predicted_values=plot_density_FGM(N=nrow(x_train),FGM)
+pred_without_error=predicted_values[[1]]
+pred_with_error=predicted_values[[2]]
+
+scatter3D(x_train[,1],x_train[,2],x_train[,3],col="black",
+          cex.symbols = .1,lwd=3,theta=0,phi =0,xlim=c(-1.1,1.1),ylim=c(-1.1,1.1),zlim=c(-1.1,1.1),
+          main="Training samples")
+scatter3D(pred_with_error[,1],pred_with_error[,2],pred_with_error[,3],col="black",
+          main="Samples from predictive density",
+          cex.symbols = .1,lwd=3,theta=0,phi =0,xlim=c(-1.1,1.1),ylim=c(-1.1,1.1),zlim=c(-1.1,1.1))
+
+FG_density=get_density_FGM(x_test,FGM)
+
+index_fg=rep(1,nrow(x_train))
+L=ncol(FGM$inclusion_matrix)
+for(j in 1:L)
+{
+  index_fg[which(FGM$inclusion_matrix[,j]==1)]=j
+}
+colo=colors()
+scatter3D(x_train[,1],x_train[,2],x_train[,3],col=colo[7*index_fg],cex.symbols = .1,
+          lwd=3,theta=0,phi =0,xlim=c(-1.1,1.1),ylim=c(-1.1,1.1),zlim=c(-1.1,1.1),main="Training samples")
