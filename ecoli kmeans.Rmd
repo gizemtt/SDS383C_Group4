@@ -1,0 +1,34 @@
+---
+title: "kmeans ecoli"
+author: "Rahmat Ashari"
+date: "12/3/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(NbClust)
+library(tsne)
+library(scatterplot3d)
+
+data = read.table("data/ecoli.data")
+```
+
+```{r}
+set.seed(2127)
+dimRedData = tsne(data[,2:7], k = 3, max_iter = 700)
+scatterplot3d(dimRedData)
+```
+
+```{r}
+k = NbClust(data[,2:7], method = "kmeans")
+```
+
+```{r}
+km = kmeans(data[,2:7], centers = 4)
+scatterplot3d(dimRedData, color = as.numeric(km$cluster), pch = 16)
+```
